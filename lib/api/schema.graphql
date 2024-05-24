@@ -1,0 +1,17 @@
+type Schema {
+  query: Query
+}
+
+type Query {
+  listPosts: ListPostResponse
+}
+
+type Post {
+  id: ID!
+  title: String
+}
+
+type ListPostResponse {
+  items: [Post]
+  foo: String
+}

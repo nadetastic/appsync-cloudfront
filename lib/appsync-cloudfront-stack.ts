@@ -1,16 +1,39 @@
-import * as cdk from 'aws-cdk-lib';
-import { Construct } from 'constructs';
-// import * as sqs from 'aws-cdk-lib/aws-sqs';
+import * as cdk from "aws-cdk-lib";
+import { Construct } from "constructs";
+import {
+  GraphqlApi,
+  Definition,
+  Code,
+  FunctionRuntime,
+} from "aws-cdk-lib/aws-appsync";
+
+import * as path from "path";
 
 export class AppsyncCloudfrontStack extends cdk.Stack {
+  api: GraphqlApi;
   constructor(scope: Construct, id: string, props?: cdk.StackProps) {
     super(scope, id, props);
 
-    // The code that defines your stack goes here
+    this.api = this.createAppSyncApi();
+  }
 
-    // example resource
-    // const queue = new sqs.Queue(this, 'AppsyncCloudfrontQueue', {
-    //   visibilityTimeout: cdk.Duration.seconds(300)
-    // });
+  private createAppSyncApi(): GraphqlApi {
+    const api = new GraphqlApi(this, "AppSyncWithCloudfront", {
+      definition: Definition.fromFile(
+        path.join(__dirname, "api", "schema.graphql")
+      ),
+      name: "CloudfrontAPi",
+    });
+
+    const NONE_DS = api.addNoneDataSource("None");
+
+    NONE_DS.createResolver("listPosts", {
+      fieldName: "listPosts",
+      typeName: "Query",
+      code: Code.fromAsset(path.join(__dirname, "api", "post-resolver.js")),
+      runtime: FunctionRuntime.JS_1_0_0,
+    });
+
+    return api;
   }
 }
